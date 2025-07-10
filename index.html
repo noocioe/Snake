@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Snake Game</title>
+    <style>
+        canvas {
+            background-color: #000;
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #555;
+        }
+        body {
+            text-align: center;
+            font-family: sans-serif;
+            background: #111;
+            color: #eee;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Snake Game</h1>
+<canvas id="gameCanvas" width="420" height="357"></canvas>
+<p>Score: <span id="score">0</span></p>
+<p>Controls: W A S D | X to Quit</p>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const width = 20;
+    const height = 17;
+    const tileSize = 21;
+
+    let x, y, fruitX, fruitY, score;
+    let tailX = [];
+    let tailY = [];
+    let nTail = 0;
+    let dir = 'STOP';
+    let gameOver = false;
+
+    function setup() {
+        gameOver = false;
+        dir = 'STOP';
+        x = Math.floor(width / 2);
+        y = Math.floor(height / 2);
+        fruitX = Math.floor(Math.random() * width);
+        fruitY = Math.floor(Math.random() * height);
+        score = 0;
+        nTail = 0;
+        tailX = [];
+        tailY = [];
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw snake head
+        ctx.fillStyle = 'lime';
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+
+        // Draw tail
+        ctx.fillStyle = 'green';
+        for (let i = 0; i < nTail; i++) {
+            ctx.fillRect(tailX[i] * tileSize, tailY[i] * tileSize, tileSize, tileSize);
+        }
+
+        // Draw fruit
+        ctx.fillStyle = 'red';
+        ctx.fillRect(fruitX * tileSize, fruitY * tileSize, tileSize, tileSize);
+
+        // Draw border (optional)
+        ctx.strokeStyle = 'white';
+        ctx.strokeRect(0, 0, width * tileSize, height * tileSize);
+
+        document.getElementById('score').textContent = score;
+    }
+
+    function update() {
+        if (gameOver) return;
+
+        let prevX = tailX[0];
+        let prevY = tailY[0];
+        let prev2X, prev2Y;
+
+        tailX[0] = x;
+        tailY[0] = y;
+
+        for (let i = 1; i < nTail; i++) {
+            prev2X = tailX[i];
+            prev2Y = tailY[i];
+            tailX[i] = prevX;
+            tailY[i] = prevY;
+            prevX = prev2X;
+            prevY = prev2Y;
+        }
+
+        switch (dir) {
+            case 'LEFT':  x--; break;
+            case 'RIGHT': x++; break;
+            case 'UP':    y--; break;
+            case 'DOWN':  y++; break;
+        }
+
+        // Wrap around
+        if (x >= width) x = 0;
+        else if (x < 0) x = width - 1;
+        if (y >= height) y = 0;
+        else if (y < 0) y = height - 1;
+
+        // Check collision with tail
+        for (let i = 0; i < nTail; i++) {
+            if (tailX[i] === x && tailY[i] === y) {
+                gameOver = true;
+                alert('Game Over! Final Score: ' + score);
+                setup();
+            }
+        }
+
+        // Eat fruit
+        if (x === fruitX && y === fruitY) {
+            score += 10;
+            fruitX = Math.floor(Math.random() * width);
+            fruitY = Math.floor(Math.random() * height);
+            nTail++;
+        }
+    }
+
+    document.addEventListener('keydown', e => {
+        switch (e.key.toLowerCase()) {
+            case 'a': dir = 'LEFT'; break;
+            case 'd': dir = 'RIGHT'; break;
+            case 'w': dir = 'UP'; break;
+            case 's': dir = 'DOWN'; break;
+            case 'x': gameOver = true; break;
+        }
+    });
+
+    setup();
+    setInterval(() => {
+        if (!gameOver) {
+            update();
+            draw();
+        }
+    }, 100);
+</script>
+
+</body>
+</html>
